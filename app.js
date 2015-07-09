@@ -62,7 +62,9 @@ Rx.Observable.fromNodeCallback(chain.getAddress, chain)(program.address).
     }).
     flatMap(function (address) {
         util.log('Basic details: ' + util.inspect(address));
-        return Rx.Observable.fromNodeCallback(chain.getAddressTransactions, chain)(address.address);
+        return Rx.Observable.fromNodeCallback(chain.getAddressTransactions, chain)(
+            address.address,
+            {limit: chain.transaction_limit});
     }).
     flatMap(function (transactions) {
         return Rx.Observable.from(transactions);

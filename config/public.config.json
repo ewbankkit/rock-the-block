@@ -1,5 +1,6 @@
 {
     "chain": {
-        "blockchain": "bitcoin"
+        "blockchain"       : "bitcoin",
+        "transaction_limit": 10
     }
 }
