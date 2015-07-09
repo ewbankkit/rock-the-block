@@ -8,6 +8,7 @@
 
 var util = require('util');
 var Rx = require('rx');
+var Chain = require('chain-node');
 
 function shutdown() {
     util.log('Shutting down...');
@@ -18,10 +19,10 @@ var sigint = Rx.Observable.fromEvent(process, 'SIGINT').flatMap(function (value)
 });
 
 var observer = {
-    onNext: function(value) {
+    onNext     : function(value) {
         util.log('Next: ' + util.inspect(value));
     },
-    onError: function(error) {
+    onError    : function(error) {
         util.log(error);
         shutdown();
     },
@@ -31,16 +32,16 @@ var observer = {
     },
 };
 
-/*
-Rx.Observable.fromEvent(kafkaConsumer, 'message').
-    merge(error).
-    merge(sigint).
-    flatMap(function (message) {
-        var bucketId = message.key.toString();
-        var bucketLedgerEntry = message.value;
-        util.log(bucketId + ': ' + util.inspect(bucketLedgerEntry));
+// Read in configuration.
+var publicConfig = require('./config/public.config.json'),
+    privateConfig = require('./config/private.config.json');
 
-        return Rx.Observable.of(message);
-    }).
+var chain = new Chain({
+    keyId     : privateConfig.chain.api_key_id,
+    keySecret : privateConfig.chain.api_key_secret,
+    blockChain: publicConfig.chain.blockchain
+});
+
+Rx.Observable.fromNodeCallback(chain.getAddress, chain)('17x23dNjXJLzGMev6R63uyRhMWP1VHawKc').
+    merge(sigint).
     subscribe(observer);
-*/
