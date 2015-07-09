@@ -6,7 +6,10 @@
  * Entry point.
  */
 
-// npm start -- --address 1DJByF3cKrRJwwztNocjpyWmSeV4wFCvEs
+// Legit:
+// npm start -- --address 3BQhMB9kWQeUMMcdeGi4R6tvYnWJEqYKUm
+// Dodgy:
+// npm start -- --address 3DsnLVweDR4vp5d31vdCjtwrSGQ1ER5WRc
 
 var util = require('util');
 var Rx = require('rx');
@@ -61,12 +64,26 @@ Rx.Observable.fromNodeCallback(chain.getAddress, chain)(program.address).
         return Rx.Observable.from(addresses).first();
     }).
     flatMap(function (address) {
+        var getTransactions,
+            getOpReturns;
+
         util.log('Basic details: ' + util.inspect(address));
-        return Rx.Observable.fromNodeCallback(chain.getAddressTransactions, chain)(
+
+        getTransactions = Rx.Observable.fromNodeCallback(chain.getAddressTransactions, chain)(
             address.address,
             {limit: chain.transaction_limit});
+        getOpReturns = Rx.Observable.fromNodeCallback(chain.getAddressOpReturns, chain)(address.address);
+
+        return Rx.Observable.merge(getTransactions, getOpReturns);
     }).
     flatMap(function (transactions) {
         return Rx.Observable.from(transactions);
     }).
+    /*
+    flatMap(function (transaction) {
+        return Rx.Observable.from(transaction.inputs);
+    }).
+    flatMap(function (input) {
+        return Rx.Observable.just(input);
+    }).*/
     subscribe(observer);
