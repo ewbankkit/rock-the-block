@@ -8,6 +8,7 @@
 
 var util = require('util');
 var Chain = require('chain-node');
+var ChainWallets = require('chain-wallets-node');
 
 // Parse command line.
 var program = require('commander');
@@ -26,6 +27,11 @@ var chain = new Chain({
     keySecret : privateConfig.chain.api_key_secret,
     blockChain: publicConfig.chain.blockchain
 });
+var chainWallets = new ChainWallets.Client({
+    keyId     : privateConfig.chain.api_key_id,
+    keySecret : privateConfig.chain.api_key_secret,
+    blockChain: publicConfig.chain.blockchain
+});
 
 if (program.address) {
     // Dodgy:
@@ -39,7 +45,7 @@ else if (program.wallet) {
     // npm start -- --wallet 2f4aab7f-538a-41c2-8639-3e3916335865
     // Legit:
     // npm start -- --wallet 791639be-8e2c-427a-87a1-8e19dff6f1b8
-    require('./show-wallet.js')(chain, program.address);
+    require('./show-wallet.js')(chainWallets, program.address);
 }
 else {
     util.log('Nothing to do');
