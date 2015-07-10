@@ -10,6 +10,7 @@
     "rx": "^2.5.3",
     "rx-node": "^1.0.1",
     "chain-node": "^3.1.2",
-    "commander": "^2.8.1"
+    "commander": "^2.8.1",
+    "lodash": "^3.10.0"
   }
 }

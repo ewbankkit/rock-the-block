@@ -6,14 +6,15 @@
  * Entry point.
  */
 
-// Legit:
-// npm start -- --address 3BQhMB9kWQeUMMcdeGi4R6tvYnWJEqYKUm
 // Dodgy:
+// npm start -- --address 3BQhMB9kWQeUMMcdeGi4R6tvYnWJEqYKUm
+// Legit:
 // npm start -- --address 3DsnLVweDR4vp5d31vdCjtwrSGQ1ER5WRc
 
 var util = require('util');
 var Rx = require('rx');
 var Chain = require('chain-node');
+var _ = require('lodash');
 
 function shutdown() {
     util.log('Shutting down...');
@@ -64,26 +65,35 @@ Rx.Observable.fromNodeCallback(chain.getAddress, chain)(program.address).
         return Rx.Observable.from(addresses).first();
     }).
     flatMap(function (address) {
-        var getTransactions,
-            getOpReturns;
+        var getTransactions;
 
-        util.log('Basic details: ' + util.inspect(address));
+        //util.log('Basic details: ' + util.inspect(address));
 
         getTransactions = Rx.Observable.fromNodeCallback(chain.getAddressTransactions, chain)(
             address.address,
             {limit: chain.transaction_limit});
-        getOpReturns = Rx.Observable.fromNodeCallback(chain.getAddressOpReturns, chain)(address.address);
 
-        return Rx.Observable.merge(getTransactions, getOpReturns);
+        return Rx.Observable.merge(getTransactions);
     }).
     flatMap(function (transactions) {
         return Rx.Observable.from(transactions);
     }).
-    /*
     flatMap(function (transaction) {
-        return Rx.Observable.from(transaction.inputs);
+        //util.log('Transaction details: ' + util.inspect(transaction));
+        function f(x) {
+            return {
+                value  : x.value,
+                address: _.first(x.addresses)
+            };
+        };
+
+        var t = {
+            hash   : transaction.hash,
+            amount : transaction.amount,
+            fees   : transaction.fees,
+            inputs : _.map(transaction.inputs, f),
+            outputs: _.map(transaction.outputs, f)
+        };
+        return Rx.Observable.just(t);
     }).
-    flatMap(function (input) {
-        return Rx.Observable.just(input);
-    }).*/
     subscribe(observer);
