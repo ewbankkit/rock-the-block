@@ -26,16 +26,28 @@ var observer = {
     },
 };
 
+/**
+ * The Chain Wallets API passes three arguments to the callback function instead of the usual two.
+ * RxJS bundles these up into an array.
+ * This function extracts the first element of the array (the response object).
+ */
+Rx.Observable.prototype.undoWeirdness = function () {
+    return this.flatMap(function (r) {
+        if (_.isArray(r)) {
+            return Rx.Observable.from(r).first();
+        }
+        return Rx.Observable.just(r);
+    });
+}
+
 module.exports = function (chainWallet, w) {
-    Rx.Observable.fromNodeCallback(chainWallet.getWalletAssetBalance, chainWallet)(w).
+    Rx.Observable.fromNodeCallback(chainWallet.getWallet, chainWallet)(w).
         merge(sigint).
-        flatMap(function (balances) {
-            return Rx.Observable.from(balances);
+        undoWeirdness().
+        flatMap(function (wallet) {
+            util.log(wallet.label);
+            return Rx.Observable.fromNodeCallback(chainWallet.getBuckets, chainWallet)(wallet.wallet_id);
         }).
-        /*
-        flatMap(function (balance) {
-            return _.has(balance, 'asset_type');
-        }).
-        */
+        undoWeirdness().
         subscribe(observer);
 };
