@@ -45,7 +45,7 @@ else if (program.wallet) {
     // npm start -- --wallet 2f4aab7f-538a-41c2-8639-3e3916335865
     // Legit:
     // npm start -- --wallet 791639be-8e2c-427a-87a1-8e19dff6f1b8
-    require('./show-wallet.js')(chainWallets, program.address);
+    require('./show-wallet.js')(chainWallets, program.wallet);
 }
 else {
     util.log('Nothing to do');
