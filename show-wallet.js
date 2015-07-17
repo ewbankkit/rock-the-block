@@ -40,7 +40,7 @@ Rx.Observable.prototype.undoWeirdness = function () {
     });
 }
 
-module.exports = function (chainWallet, w) {
+module.exports = function (chainWallet, w, a) {
     Rx.Observable.fromNodeCallback(chainWallet.getWallet, chainWallet)(w).
         merge(sigint).
         undoWeirdness().
@@ -49,5 +49,30 @@ module.exports = function (chainWallet, w) {
             return Rx.Observable.fromNodeCallback(chainWallet.getBuckets, chainWallet)(wallet.wallet_id);
         }).
         undoWeirdness().
+        flatMap(function (buckets) {
+            return Rx.Observable.from(buckets);
+        }).
+        flatMap(function (bucket) {
+            util.log(util.inspect(bucket));
+            if (!a || (bucket.balance == 0)) {
+                return Rx.Observable.just(null);
+            }
+
+            var amount = bucket.balance
+            util.log('Transferring ' + amount + ' bits to ' + a);
+
+            var options = {
+                inputs: [{
+                    bucket_id        : bucket.bucket_id,
+                    amount           : amount,
+                    min_confirmations: 0
+                }],
+                outputs: [{
+                    address: a,
+                    amount : amount
+                }]
+            };
+            return Rx.Observable.fromNodeCallback(chainWallet.transact, chainWallet)(options);
+        }).
         subscribe(observer);
 };
